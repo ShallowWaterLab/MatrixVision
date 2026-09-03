@@ -1,109 +1,172 @@
 # MatrixVision / 终端 Matrix 数字雨
 
-终端版 Matrix 数字雨，摄像头亮度实时驱动字符亮度与变化。适合外接竖屏，支持全屏 cover 填充，保持摄像头原始比例。
+> 在终端里看一场自己房间光照写进代码的雨，同时听一首从 YouTube Live 里捞出来的电台。
 
-Terminal Matrix digital rain driven by live camera brightness. Designed for vertical monitors with full-screen cover fill and original camera aspect ratio preserved.
+---
 
-## 快速开始 / Quick Start
+## 它是什么
 
-### 一键安装 / One-Command Install
+MatrixVision 是一个**终端里的 Matrix 数字雨**体验：摄像头每一帧的亮度会实时改写雨的密度、速度和拖尾。但它不止于此——
+
+> 🎵 **核心特色：在线音乐/直播电台驱动 + 摄像头实景双层驱动**
+
+它可以把 YouTube Live 电台流拉进终端，用**音频能量**控制雨的节奏和生成概率，同时再用**摄像头实景亮度**控制雨的空间分布。两层叠加，就是这款小程序最不一样的地方。
+
+---
+
+## 效果一览
+
+| 特性 | 说明 |
+|------|------|
+| 🎥 摄像头亮度驱动 | 亮的地方雨更密、更快，暗的地方稀疏 |
+| 🎵 在线电台/音乐驱动 | yt-dlp + ffmpeg + ffplay，音频能量驱动全局雨流速度、拖尾、生成概率 |
+| 🌧️ 两层亮度分离 | 雨痕衰减层 + 摄像头背景层，互不干扰 |
+| 🎛️ 菜单内实时调节 | 对比度 CLAHE（0-3）、边缘 Sobel（0-3） |
+| 📻 电台预设 | DEFAULT / LOFI 1 / JAZZ / AMBIENT / SYNTH / PIANO，左右键切换 |
+| 🔊 独立开关 | AUDIO / CAMERA 可独立关闭，关掉某一层其余仍正常运行 |
+| 📺 竖屏适配 | cover 裁剪 + cell_aspect ≈ 1.2，外接竖屏友好 |
+| ⌨️ 字符集切换 | mix（片假名 + ASCII）/ ascii / kana |
+| 📦 一键安装 | `bash install.sh`，自动装依赖、yt-dlp、venv、启动器 |
+| 🔄 自动备份 | 修改自动存到 `src/backups/`（最多 20 份） |
+
+---
+
+## 快速开始
 
 ```bash
 # 1. 克隆仓库
 git clone https://github.com/ShallowWaterLab/MatrixVision.git
 cd MatrixVision
 
-# 2. 一键安装所有依赖
+# 2. 一键安装
 bash install.sh
-```
 
-安装脚本会自动完成：
-- 检测系统并安装 `ffmpeg`
-- 创建 Python 虚拟环境并安装 `opencv-python-headless` + `numpy`
-- 安装 `yt-dlp`（在线音乐依赖）
-- 配置启动脚本
-
-### 运行 / Run
-
-```bash
-# 方式1：直接运行（推荐）
-./run.sh
-
-# 方式2：使用全局命令（安装后可直接在任何目录运行）
+# 3. 启动（默认摄像头）
 MatrixVision
 
-# 指定摄像头与分辨率
-./run.sh 0 1280 720
+# 指定摄像头索引和分辨率
+MatrixVision 0 1280 720
 ```
 
-### 手动运行（不通过安装脚本）/ Manual Run
+> 安装脚本会自动：装 ffmpeg、yt-dlp、opencv-python-headless、numpy，创建 `.venv`，并在 `~/.local/bin` 生成 `MatrixVision` 启动器。
+
+---
+
+## 使用说明
+
+### 菜单键位
+
+| 按键 | 功能 |
+|------|------|
+| `↑ ↓ ← →` | 切换菜单项 |
+| `Space` / `Enter` | 确认 / 切换开关 |
+| `Esc` | 退出菜单（或退出程序） |
+| `Q` / `Ctrl+C` | 退出程序 |
+
+### 菜单项说明
+
+| 菜单 | 功能 |
+|------|------|
+| **CONTRAST** | CLAHE 对比度，0-3 档（0 = 关闭） |
+| **EDGE** | Sobel 边缘轮廓，0-3 档（0 = 关闭） |
+| **AUDIO** | 音频引擎 ON / OFF，关闭后停止音频并停止驱动 |
+| **CAMERA** | 摄像头采集 ON / OFF，关闭后数字雨继续以纯雨滴动画运行 |
+| **AUDIO_QUERY** | 电台预设，左右键切换：DEFAULT / LOFI 1 / JAZZ / AMBIENT / SYNTH / PIANO |
+| **SAVE** | 保存当前设置，显示 ✔ Saved 提示 |
+| **QUIT** | 退出程序 |
+
+> 当前音频状态会实时显示在 `AUDIO_QUERY` 菜单行：`♪ connecting...` / `♪ ready`
+
+---
+
+## 环境变量
+
+可在启动前通过环境变量预配置：
 
 ```bash
-# 创建虚拟环境
-python3 -m venv .venv
-source .venv/bin/activate
-
-# 安装依赖
-pip install opencv-python-headless numpy
-
-# 运行
-python3 src/rain.py
+MATRIXMIX_FPS=24              # 帧率上限
+MATRIXMIX_SPEED=2             # 速度倍率
+MATRIXMIX_INVERT=true         # 摄像头级灰度反色
+MATRIXMIX_CONTRAST=2          # 对比度 0-3
+MATRIXMIX_EDGE=2              # 轮廓 0-3
+MATRIXMIX_AUDIO=1             # 启用音频引擎
+MATRIXMIX_QUERY="lofi hip hop" # 默认音频查询词
 ```
 
-## 架构 / Architecture
+---
 
-- `ESC`：打开/关闭设置页 / Open/close settings menu
-- `Space` / `Enter`：确认 / Confirm
-- `↑` / `↓`：选择菜单项 / Select menu item
-- `←` / `→`：调整数值 / Adjust value
-- `Ctrl+C` / `Q`：退出 / Quit
+## 架构概览
 
-## 设置项 / Settings
+```
+Camera / Mic input
+      │
+      ▼
+  Capture Pipeline
+  (resize → grayscale → brightness map)
+      │                 │
+      ▼                 ▼
+ Rain Engine ─────► Terminal I/O
+ (column heads,      (ANSI true-color,
+  brightness-         cursor-position writes,
+  modulated trails)   dirty-rectangle render)
+      │
+  Audio Engine
+  (yt-dlp stream → ffmpeg decode →
+   audio energy → rain speed/spawn)
+```
 
-- **CONTRAST**：CLAHE 对比度增强，0=关闭，1-3=增强强度 / CLAHE contrast enhancement, 0=off, 1-3=intensity
-- **EDGE**：Sobel 边缘增强，0=关闭，1-3=增强强度 / Sobel edge enhancement, 0=off, 1-3=intensity
-- **AUDIO**：在线音频开关 / Online audio toggle
-- **CAMERA**：摄像头采集开关 / Camera capture toggle
-- **AUDIO_QUERY**：预设电台切换 / Preset radio switching
-- **SAVE**：保存当前设置到 `src/matrixvision.json` / Save current settings
-- **QUIT**：退出程序 / Quit
+- **Camera Manager**：枚举 `/dev/video*`，打开设备并推帧到渲染循环
+- **Capture Pipeline**：`cap.read()` → resize 到终端网格 → 灰度 → 每列亮度能量
+- **Rain Engine**：每列独立浮点头部 + 速度偏移（0.6x–1.4x）；亮度越高，拖尾越长、下落越快、生成越密
+- **Audio Engine**：yt-dlp 拉直播流 → ffmpeg 解码 → 音频能量映射为全局雨速/生成概率
+- **Terminal I/O**：隐藏光标、ANSI 真彩色、脏矩形渲染，只重写变化单元格以降低闪烁
 
-## 特性 / Features
+---
 
-- 摄像头亮度直接映射字符亮度 / Camera brightness directly maps to character brightness
-- 两层亮度分离：雨头/拖尾独立衰减，摄像头背景直接跟踪无拖影 / Two-layer brightness: trail decay + camera background tracking without ghosting
-- 反色固定开启 / Invert always on
-- 全屏 cover 裁剪，保持摄像头原始比例 / Full-screen cover crop, keeps original camera aspect ratio
-- 背景字符随亮度变化随机换字 / Background characters randomize on brightness changes
-- 字符集：半角片假名 + ASCII，与 MatrixMix 一致 / Charset: half-width katakana + ASCII, consistent with MatrixMix
-- 自动备份：每次启动自动备份到 `src/backups/`（最多 20 个） / Auto backup to `src/backups/` on every launch (max 20)
+## 系统依赖
 
-## 环境变量 / Environment Variables
-
-| 变量 Variable | 说明 Description | 默认值 Default |
-|------|------|--------|
-| MATRIXMIX_FPS | 渲染帧率 Render FPS | 16 |
-| MATRIXMIX_SPEED | 雨流速度倍率 Rain speed multiplier | 1 |
-| MATRIXMIX_INVERT | 启动时启用反色 Invert on startup | true |
-| MATRIXMIX_CONTRAST | 启动时对比度档位 0-3 Contrast level at startup | 2 |
-| MATRIXMIX_EDGE | 启动时轮廓档位 0-3 Edge level at startup | 2 |
-| MATRIXMIX_AUDIO | 启动时启用音频 Enable audio on startup | 1 |
-| MATRIXMIX_QUERY | 默认音乐查询词 Default music query | ytsearch1:lofi hip hop radio |
-
-## 依赖 / Dependencies
-
-- Python 3.10+
-- OpenCV 5.0.0
-- NumPy 2.4.6
+- Python >= 3.10
+- OpenCV >= 5.0
 - ffmpeg
 - yt-dlp
+- 支持 ANSI true-color + UTF-8 的终端
 
-## 架构 / Architecture
+---
 
-### 预览 / Preview
+## 路线图
 
-| 主界面 Main | 设置页 Settings |
-|------|------|
-| ![](screenshots/screenshot-main.png) | ![](screenshots/screenshot-settings.png) |
+- [x] 终端数字雨 + 摄像头亮度驱动
+- [x] 两层亮度分离（雨痕衰减 + 摄像头背景）
+- [x] 在线音乐播放，音频能量驱动雨流
+- [x] 对比度 / 边缘实时调节菜单
+- [x] 电台预设 + 独立 AUDIO / CAMERA 开关
+- [x] 竖屏 cover 适配
+- [ ] 截图保存
+- [ ] 录制 GIF / MP4
 
-详见 / See [ARCHITECTURE.md](ARCHITECTURE.md) for details.
+---
+
+## 相关项目
+
+- [MatrixMix](https://github.com/ShallowWaterLab/MatrixMix) — 基础字符集与渲染核心
+- [ShallowWaterLab](https://github.com/ShallowWaterLab/) — 更多实验项目
+
+---
+
+## 开源协议
+
+MIT
+
+---
+
+## 一个纯小白的开发手记
+
+我没有软件开发背景。写这个项目之前，我不会写代码，不懂 Git，也没有接触过 Python 或终端编程。
+
+这个项目完全是我用自然语言向 [Hermes Agent](https://hermes-agent.nousresearch.com/) 描述我想要什么，然后由 AI 一步步帮我写出来的。
+
+整个过程中，我只负责「说人话」——描述我想要的效果、哪里不满意、希望怎么改——Hermes Agent 帮我处理了 rest：代码架构、OpenCV 调用、音频流、终端渲染、Git 提交……甚至还有截图和 DEVLOG。
+
+**一个纯小白 + 一个会写代码的 AI，就是 MatrixVision 的全部阵容。**
+
+我把它开源出来，是想告诉其他没有编程经验的朋友：你也可以用自然语言，从零开始做出自己的东西。
