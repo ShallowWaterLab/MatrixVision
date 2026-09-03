@@ -48,7 +48,7 @@ MatrixVision <camera_index> <width> <height>
 ```
 
 ## Reproducibility
-- Verified with OpenCV `5.0.0` on Linux.
+- Verified with OpenCV `4.x` on Linux.
 - Requires terminal that supports ANSI true-color and UTF-8.
 
 ## Milestones

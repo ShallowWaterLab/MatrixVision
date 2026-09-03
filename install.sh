@@ -186,8 +186,8 @@ setup_launcher() {
   cat > "${launcher}" << EOF
 #!/usr/bin/env bash
 # MatrixVision launcher
-SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
-exec "\${SCRIPT_DIR}/.venv/bin/python" "\${SCRIPT_DIR}/src/rain.py" "\$@"
+PROJECT_DIR="\${script_dir}"
+exec "\${PROJECT_DIR}/.venv/bin/python" "\${PROJECT_DIR}/src/rain.py" "\$@"
 EOF
 
   chmod +x "${launcher}"
