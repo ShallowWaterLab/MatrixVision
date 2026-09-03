@@ -17,7 +17,7 @@
 - 设置页 AUDIO 开关：ON/OFF，关闭时停止音频并停止驱动
 - 设置页 CAMERA 开关：ON/OFF，关闭时停止摄像头采集，数字雨动画继续运行
 - 设置页 AUDIO_QUERY 预设电台：DEFAULT / LOFI 1 / JAZZ / AMBIENT / SYNTH / PIANO，左右键切换
-- 音频状态实时显示在菜单 AUDIO_QUERY 行：♪ connecting... / ♔ ready
+- 音频状态实时显示在菜单 AUDIO_QUERY 行：♪ connecting... / ♪ ready
 - 空格和回车键均可用于菜单确认
 
 ### 修复
