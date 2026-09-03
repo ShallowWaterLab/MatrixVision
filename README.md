@@ -50,13 +50,7 @@ pip install opencv-python-headless numpy
 python3 src/rain.py
 ```
 
-## 预览 / Preview
-
-| 主界面 Main | 设置页 Settings |
-|------|------|
-| ![](screenshots/screenshot-main.png) | ![](screenshots/screenshot-settings.png) |
-
-## 操作 / Controls
+## 架构 / Architecture
 
 - `ESC`：打开/关闭设置页 / Open/close settings menu
 - `Space` / `Enter`：确认 / Confirm
