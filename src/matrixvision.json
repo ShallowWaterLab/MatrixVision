@@ -1,0 +1,9 @@
+{
+  "contrast": 1,
+  "edge": 3,
+  "fps": 16,
+  "speed": 1.0,
+  "audio": true,
+  "audio_query": "ytsearch1:lofi jazz radio -live",
+  "camera_enabled": true
+}
