@@ -100,4 +100,10 @@ python3 src/rain.py
 
 ## 架构 / Architecture
 
+### 预览 / Preview
+
+| 主界面 Main | 设置页 Settings |
+|------|------|
+| ![](screenshots/screenshot-main.png) | ![](screenshots/screenshot-settings.png) |
+
 详见 / See [ARCHITECTURE.md](ARCHITECTURE.md) for details.
