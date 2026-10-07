@@ -8,6 +8,7 @@ ESC open/close settings menu, Space/Enter to confirm
 import cv2
 import numpy as np
 import os
+import re
 import sys
 import time
 import shutil
@@ -543,22 +544,48 @@ def run(cam_idx=0, cam_w=1280, cam_h=720):
     backup_version()
     try:
         my_pid = os.getpid()
+
+        # 收集自己 + 全部祖先 pid，绝不误杀启动链上的进程
+        # （run.sh 用 systemd-inhibit 包一层启动，父进程 cmdline 里会包含
+        #   "matrixvision/src/rain.py"，若不加保护会把自己的父进程 kill -9，
+        #   终端即显示 "已杀死"）
+        protected = set()
+        cur = my_pid
+        for _ in range(32):
+            protected.add(cur)
+            try:
+                stat = open(f'/proc/{cur}/stat', 'rb').read().decode('utf-8', 'replace')
+                ppid = int(stat.rsplit(')', 1)[1].split()[1])
+            except Exception:
+                break
+            if ppid <= 1 or ppid in protected:
+                protected.add(ppid)
+                break
+            cur = ppid
+
         for entry in os.listdir('/proc'):
             if not entry.isdigit():
                 continue
             pid = int(entry)
-            if pid == my_pid:
+            if pid in protected:
                 continue
             try:
                 cmdline = open(f'/proc/{pid}/cmdline', 'rb').read().replace(b'\x00', b' ').decode('utf-8', 'replace')
             except Exception:
                 continue
-            if 'matrixvision/src/rain.py' in cmdline or 'MatrixVision' in cmdline:
-                try:
-                    os.kill(pid, 9)
-                except Exception:
-                    pass
-                time.sleep(0.2)
+            # 只认真正在跑本程序的实例：cmdline 里同时出现 rain.py 与 MatrixVision
+            # 目录标记，且不是 shell/wrapper（排除 bash/sh/systemd-inhibit）
+            if 'rain.py' not in cmdline:
+                continue
+            if 'matrixvision' not in cmdline.lower():
+                continue
+            if re.search(r'(^|/)(bash|sh|dash|systemd-inhibit)( |$)', cmdline):
+                continue
+            try:
+                os.kill(pid, 9)
+            except Exception:
+                pass
+            time.sleep(0.2)
     except Exception:
         pass
 
