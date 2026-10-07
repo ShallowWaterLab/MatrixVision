@@ -25,3 +25,6 @@ Thumbs.db
 
 # Git
 *.orig
+
+# dist tarball
+MatrixVision.tar.gz
